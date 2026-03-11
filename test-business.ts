@@ -294,6 +294,7 @@ function buildAccount(overrides?: Partial<ResolvedWeChatAccount["config"]>): Res
     enabled: true,
     configured: true,
     name: "YutoAI",
+    provider: "legacy",
     apiKey: "wc_live_test",
     proxyUrl: "http://127.0.0.1:13800",
     wcId: "wxid_yutoai",
@@ -303,6 +304,10 @@ function buildAccount(overrides?: Partial<ResolvedWeChatAccount["config"]>): Res
     proxy: "2",
     webhookPort: 18790,
     webhookPath: "/webhook/wechat",
+    webhookIncludeSelfMessage: false,
+    webhookRetryCount: 3,
+    webhookTimeoutSec: 10,
+    webhookTimestampSkewSec: 300,
     natappEnabled: false,
     natapiWebPort: 4040,
     config: {
