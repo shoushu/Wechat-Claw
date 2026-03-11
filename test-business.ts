@@ -308,8 +308,6 @@ function buildAccount(overrides?: Partial<ResolvedWeChatAccount["config"]>): Res
     webhookRetryCount: 3,
     webhookTimeoutSec: 10,
     webhookTimestampSkewSec: 300,
-    natappEnabled: false,
-    natapiWebPort: 4040,
     config: {
       apiKey: "wc_live_test",
       proxyUrl: "http://127.0.0.1:13800",

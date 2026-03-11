@@ -4,7 +4,7 @@ import { wechatPlugin } from "./src/channel.js";
 import { setWeChatRuntime } from "./src/runtime.js";
 
 const plugin = {
-  id: "wechat",
+  id: "wechat-claw",
   name: "YutoAI WeChat",
   description: "YutoAI 微信节点",
   configSchema: emptyPluginConfigSchema(),

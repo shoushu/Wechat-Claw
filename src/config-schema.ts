@@ -99,8 +99,6 @@ export interface WechatAccountConfig extends WechatSharedConfig {
   webhookRetryCount?: number;
   webhookTimeoutSec?: number;
   webhookTimestampSkewSec?: number;
-  natappEnabled?: boolean;
-  natapiWebPort?: number;
   wcId?: string;           // 登录后自动填充
   nickName?: string;       // 登录后自动填充
   configured?: boolean;    // 运行时标记
@@ -326,8 +324,6 @@ export const WechatConfigSchema = {
           webhookRetryCount: { type: "integer" },
           webhookTimeoutSec: { type: "integer" },
           webhookTimestampSkewSec: { type: "integer" },
-          natappEnabled: { type: "boolean" },
-          natapiWebPort: { type: "integer" },
           wcId: { type: "string" },
           nickName: { type: "string" },
           ...sharedConfigProperties,

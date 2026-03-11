@@ -35,6 +35,7 @@
 
 - 通道 id: `wechat`
 - 包名: `wechat-claw`
+- 插件 id: `wechat-claw`
 - 运行时入口: `openclaw`
 
 这些属于技术兼容层，不影响对外品牌命名。
@@ -170,7 +171,7 @@ openclaw plugins install wechat-claw
 ## 升级
 
 ```bash
-openclaw plugins update wechat
+openclaw plugins update wechat-claw
 ```
 
 ## 最小配置

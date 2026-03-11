@@ -74,12 +74,6 @@ function pickSharedAccountConfig(source?: WechatConfig | WechatAccountConfig): P
   if ("webhookTimestampSkewSec" in source) {
     next.webhookTimestampSkewSec = source.webhookTimestampSkewSec;
   }
-  if ("natappEnabled" in source) {
-    next.natappEnabled = source.natappEnabled;
-  }
-  if ("natapiWebPort" in source) {
-    next.natapiWebPort = source.natapiWebPort;
-  }
 
   if (source.inbound) {
     next.inbound = { ...source.inbound };
@@ -221,8 +215,6 @@ function resolveWeChatAccount({
     webhookRetryCount: accountCfg.webhookRetryCount || 3,
     webhookTimeoutSec: accountCfg.webhookTimeoutSec || 10,
     webhookTimestampSkewSec: accountCfg.webhookTimestampSkewSec || 300,
-    natappEnabled: accountCfg.natappEnabled ?? false,
-    natapiWebPort: accountCfg.natapiWebPort || 4040,
     config: accountCfg,
   };
 }

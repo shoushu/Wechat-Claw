@@ -1,5 +1,5 @@
 {
-  "id": "wechat",
+  "id": "wechat-claw",
   "channels": ["wechat"],
   "configSchema": {
     "type": "object",
@@ -54,8 +54,6 @@
             "webhookRetryCount": { "type": "integer" },
             "webhookTimeoutSec": { "type": "integer" },
             "webhookTimestampSkewSec": { "type": "integer" },
-            "natappEnabled": { "type": "boolean" },
-            "natapiWebPort": { "type": "integer" },
             "wcId": { "type": "string" },
             "nickName": { "type": "string" }
           },

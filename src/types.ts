@@ -59,8 +59,6 @@ export type ResolvedWeChatAccount = {
   webhookRetryCount: number;
   webhookTimeoutSec: number;
   webhookTimestampSkewSec: number;
-  natappEnabled: boolean;
-  natapiWebPort: number;
   config: WechatAccountConfig;
 };
 

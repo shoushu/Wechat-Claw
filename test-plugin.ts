@@ -4,6 +4,7 @@
  */
 
 import assert from "node:assert/strict";
+import plugin from "./index.ts";
 import { ProxyClient } from "./src/proxy-client.js";
 import { startCallbackServer } from "./src/callback-server.js";
 import type { WechatMessageContext } from "./src/types.js";
@@ -21,6 +22,13 @@ const WEBHOOK_AUTH_TOKEN = buildWebhookAuthToken(
   TEST_CONFIG.apiKey
 );
 let receivedMessage: WechatMessageContext | null = null;
+
+function testPluginMetadata() {
+  console.log("\n🧪 验证插件元数据...");
+  assert.equal(plugin.id, "wechat-claw", "插件 id 应与包身份一致");
+  assert.equal(plugin.name, "YutoAI WeChat");
+  console.log("  ✓ 插件 id 与公开包名对齐");
+}
 
 // ===== 验证 1: ProxyClient =====
 async function testProxyClient() {
@@ -125,6 +133,8 @@ async function testWebhookReceive() {
 // ===== 主验证流程 =====
 async function main() {
   console.log("🚀 开始 YutoAI 微信节点插件验证\n");
+
+  testPluginMetadata();
 
   // 验证 ProxyClient
   await testProxyClient();
