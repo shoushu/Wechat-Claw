@@ -26,7 +26,7 @@ export class ProxyClient {
       body: data ? JSON.stringify(data) : undefined,
     });
 
-    const result = await response.json().catch(() => ({
+    const result: any = await response.json().catch(() => ({
       error: `HTTP ${response.status}: ${response.statusText}`,
     }));
 
