@@ -182,6 +182,7 @@ export async function handleWeChatMessage(params: {
       cfg,
       agentId,
       runtime: runtime as RuntimeEnv,
+      provider: account.provider,
       apiKey: account.apiKey,
       proxyUrl: account.proxyUrl,
       replyTo,
@@ -248,9 +249,20 @@ async function maybeSendTextReply(params: {
     : undefined;
 
   const client = new ProxyClient({
+    provider: account.provider,
     apiKey: account.apiKey,
     accountId: account.accountId,
     baseUrl: account.proxyUrl,
+    deviceType: account.deviceType,
+    proxy: account.proxy,
+    loginProxyUrl: account.loginProxyUrl,
+    deviceName: account.deviceName,
+    deviceId: account.deviceId,
+    webhookSecret: account.webhookSecret,
+    webhookMessageTypes: account.webhookMessageTypes,
+    webhookIncludeSelfMessage: account.webhookIncludeSelfMessage,
+    webhookRetryCount: account.webhookRetryCount,
+    webhookTimeoutSec: account.webhookTimeoutSec,
   });
 
   const content = prefix ? `${prefix}${text}` : text;

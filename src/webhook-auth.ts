@@ -9,6 +9,12 @@ export function buildWebhookAuthToken(accountId: string, apiKey: string): string
     .slice(0, 24);
 }
 
+export function buildWebhookSecret(accountId: string, apiKey: string): string {
+  return createHash("sha256")
+    .update(`yutoai-wechat:webhook:${accountId}:${apiKey}`)
+    .digest("hex");
+}
+
 export function attachWebhookAuthToken(webhookUrl: string, authToken: string): string {
   const url = new URL(webhookUrl);
   url.searchParams.set(WEBHOOK_AUTH_QUERY_PARAM, authToken);

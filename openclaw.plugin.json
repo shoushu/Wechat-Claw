@@ -6,13 +6,26 @@
     "additionalProperties": false,
     "properties": {
       "enabled": { "type": "boolean" },
+      "provider": { "type": "string", "enum": ["legacy", "wechatpadpro"] },
       "apiKey": { "type": "string" },
       "proxyUrl": { "type": "string" },
       "deviceType": { "type": "string", "enum": ["ipad", "mac"] },
       "proxy": { "type": "string" },
+      "loginProxyUrl": { "type": "string" },
+      "deviceName": { "type": "string" },
+      "deviceId": { "type": "string" },
       "webhookHost": { "type": "string" },
       "webhookPort": { "type": "integer" },
       "webhookPath": { "type": "string" },
+      "webhookSecret": { "type": "string" },
+      "webhookMessageTypes": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "webhookIncludeSelfMessage": { "type": "boolean" },
+      "webhookRetryCount": { "type": "integer" },
+      "webhookTimeoutSec": { "type": "integer" },
+      "webhookTimestampSkewSec": { "type": "integer" },
       "accounts": {
         "type": "object",
         "additionalProperties": {
@@ -21,13 +34,26 @@
           "properties": {
             "enabled": { "type": "boolean" },
             "name": { "type": "string" },
+            "provider": { "type": "string", "enum": ["legacy", "wechatpadpro"] },
             "apiKey": { "type": "string" },
             "proxyUrl": { "type": "string" },
             "deviceType": { "type": "string", "enum": ["ipad", "mac"] },
             "proxy": { "type": "string" },
+            "loginProxyUrl": { "type": "string" },
+            "deviceName": { "type": "string" },
+            "deviceId": { "type": "string" },
             "webhookHost": { "type": "string" },
             "webhookPort": { "type": "integer" },
             "webhookPath": { "type": "string" },
+            "webhookSecret": { "type": "string" },
+            "webhookMessageTypes": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "webhookIncludeSelfMessage": { "type": "boolean" },
+            "webhookRetryCount": { "type": "integer" },
+            "webhookTimeoutSec": { "type": "integer" },
+            "webhookTimestampSkewSec": { "type": "integer" },
             "natappEnabled": { "type": "boolean" },
             "natapiWebPort": { "type": "integer" },
             "wcId": { "type": "string" },

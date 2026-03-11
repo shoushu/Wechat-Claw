@@ -6,11 +6,13 @@ import type {
 import { createReplyPrefixContext } from "openclaw/plugin-sdk";
 import { getWeChatRuntime } from "./runtime.js";
 import { ProxyClient } from "./proxy-client.js";
+import type { WechatProvider } from "./types.js";
 
 export type CreateWeChatReplyDispatcherParams = {
   cfg: ClawdbotConfig;
   agentId: string;
   runtime: RuntimeEnv;
+  provider?: WechatProvider;
   apiKey: string;
   proxyUrl: string;
   /** 回复投递目标，可为私聊接收方或群聊 ID */
@@ -21,7 +23,7 @@ export type CreateWeChatReplyDispatcherParams = {
 
 export function createWeChatReplyDispatcher(params: CreateWeChatReplyDispatcherParams) {
   const core = getWeChatRuntime();
-  const { cfg, agentId, runtime, apiKey, proxyUrl, replyTo, accountId, textPrefix } = params;
+  const { cfg, agentId, runtime, provider, apiKey, proxyUrl, replyTo, accountId, textPrefix } = params;
 
   const prefixContext = createReplyPrefixContext({
     cfg,
@@ -36,6 +38,7 @@ export function createWeChatReplyDispatcher(params: CreateWeChatReplyDispatcherP
   const chunkMode = core.channel.text.resolveChunkMode(cfg, "wechat");
 
   const client = new ProxyClient({
+    provider,
     apiKey,
     accountId: accountId || "default",
     baseUrl: proxyUrl,

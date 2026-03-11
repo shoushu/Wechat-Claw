@@ -6,7 +6,7 @@ import { ProxyClient } from "./proxy-client.js";
 import { startCallbackServer } from "./callback-server.js";
 import { handleWeChatMessage } from "./bot.js";
 import { displayQRCode, displayLoginSuccess } from "./utils/qrcode.js";
-import { attachWebhookAuthToken, buildWebhookAuthToken } from "./webhook-auth.js";
+import { attachWebhookAuthToken, buildWebhookAuthToken, buildWebhookSecret } from "./webhook-auth.js";
 import { buildWebhookBaseUrl } from "./webhook-url.js";
 
 // 代理服务地址（必须配置）
@@ -28,6 +28,58 @@ function pickSharedAccountConfig(source?: WechatConfig | WechatAccountConfig): P
   }
 
   const next: Partial<WechatAccountConfig> = {};
+
+  if ("provider" in source) {
+    next.provider = source.provider;
+  }
+  if ("deviceType" in source) {
+    next.deviceType = source.deviceType;
+  }
+  if ("proxy" in source) {
+    next.proxy = source.proxy;
+  }
+  if ("loginProxyUrl" in source) {
+    next.loginProxyUrl = source.loginProxyUrl;
+  }
+  if ("deviceName" in source) {
+    next.deviceName = source.deviceName;
+  }
+  if ("deviceId" in source) {
+    next.deviceId = source.deviceId;
+  }
+  if ("webhookHost" in source) {
+    next.webhookHost = source.webhookHost;
+  }
+  if ("webhookPort" in source) {
+    next.webhookPort = source.webhookPort;
+  }
+  if ("webhookPath" in source) {
+    next.webhookPath = source.webhookPath;
+  }
+  if ("webhookSecret" in source) {
+    next.webhookSecret = source.webhookSecret;
+  }
+  if ("webhookMessageTypes" in source) {
+    next.webhookMessageTypes = source.webhookMessageTypes?.slice();
+  }
+  if ("webhookIncludeSelfMessage" in source) {
+    next.webhookIncludeSelfMessage = source.webhookIncludeSelfMessage;
+  }
+  if ("webhookRetryCount" in source) {
+    next.webhookRetryCount = source.webhookRetryCount;
+  }
+  if ("webhookTimeoutSec" in source) {
+    next.webhookTimeoutSec = source.webhookTimeoutSec;
+  }
+  if ("webhookTimestampSkewSec" in source) {
+    next.webhookTimestampSkewSec = source.webhookTimestampSkewSec;
+  }
+  if ("natappEnabled" in source) {
+    next.natappEnabled = source.natappEnabled;
+  }
+  if ("natapiWebPort" in source) {
+    next.natapiWebPort = source.natapiWebPort;
+  }
 
   if (source.inbound) {
     next.inbound = { ...source.inbound };
@@ -149,6 +201,7 @@ function resolveWeChatAccount({
     enabled,
     configured: true,
     name: accountCfg.name,
+    provider: accountCfg.provider || "legacy",
     apiKey: accountCfg.apiKey,
     proxyUrl: accountCfg.proxyUrl,
     wcId: accountCfg.wcId,
@@ -156,9 +209,18 @@ function resolveWeChatAccount({
     nickName: accountCfg.nickName,
     deviceType: accountCfg.deviceType || "ipad",
     proxy: accountCfg.proxy || "2",
+    loginProxyUrl: accountCfg.loginProxyUrl,
+    deviceName: accountCfg.deviceName,
+    deviceId: accountCfg.deviceId,
     webhookHost: accountCfg.webhookHost,
     webhookPort: accountCfg.webhookPort || 18792,
     webhookPath: accountCfg.webhookPath || "/webhook/wechat",
+    webhookSecret: accountCfg.webhookSecret,
+    webhookMessageTypes: accountCfg.webhookMessageTypes?.slice(),
+    webhookIncludeSelfMessage: accountCfg.webhookIncludeSelfMessage ?? false,
+    webhookRetryCount: accountCfg.webhookRetryCount || 3,
+    webhookTimeoutSec: accountCfg.webhookTimeoutSec || 10,
+    webhookTimestampSkewSec: accountCfg.webhookTimestampSkewSec || 300,
     natappEnabled: accountCfg.natappEnabled ?? false,
     natapiWebPort: accountCfg.natapiWebPort || 4040,
     config: accountCfg,
@@ -215,9 +277,20 @@ function looksLikeImageUrl(url: string): boolean {
 
 function createAccountClient(account: ResolvedWeChatAccount): ProxyClient {
   return new ProxyClient({
+    provider: account.provider,
     apiKey: account.apiKey,
     accountId: account.accountId,
     baseUrl: account.proxyUrl,
+    deviceType: account.deviceType,
+    proxy: account.proxy,
+    loginProxyUrl: account.loginProxyUrl,
+    deviceName: account.deviceName,
+    deviceId: account.deviceId,
+    webhookSecret: account.webhookSecret,
+    webhookMessageTypes: account.webhookMessageTypes,
+    webhookIncludeSelfMessage: account.webhookIncludeSelfMessage,
+    webhookRetryCount: account.webhookRetryCount,
+    webhookTimeoutSec: account.webhookTimeoutSec,
   });
 }
 
@@ -256,6 +329,16 @@ function collectSecurityWarnings(account: ResolvedWeChatAccount): string[] {
 
   if (!account.webhookHost) {
     warnings.push("未显式配置 webhookHost，当前依赖运行时自动探测公网地址。");
+  }
+
+  if (account.provider === "wechatpadpro") {
+    warnings.push("WeChatPadPro 属于非官方协议接入，无法承诺零风控；建议固定同城稳定代理并避免频繁重登。");
+    if (!account.loginProxyUrl) {
+      warnings.push("WeChatPadPro 未配置 loginProxyUrl，首次登录稳定性可能受出口网络影响。");
+    }
+    if (account.deviceType === "ipad") {
+      warnings.push("WeChatPadPro 的 iPad 登录按公开文档可能在首登 24 小时内触发一次掉线，建议完成首次稳定登录后再持续运行。");
+    }
   }
 
   return warnings;
@@ -543,6 +626,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
       const account = await resolveWeChatAccount({ cfg, accountId });
 
       log?.info(`启动 YutoAI 微信账号: ${accountId}`);
+      log?.info(`后端提供方: ${account.provider}`);
       log?.info(`代理地址: ${account.proxyUrl}`);
 
       const client = createAccountClient(account);
@@ -560,7 +644,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
 
         const { qrCodeUrl, wId } = await client.getQRCode(
           account.deviceType,
-          account.proxy
+          account.provider === "wechatpadpro" ? account.loginProxyUrl : account.proxy
         );
 
         await displayQRCode(qrCodeUrl);
@@ -639,9 +723,13 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
         webhookPath: account.webhookPath,
       });
       const webhookAuthToken = buildWebhookAuthToken(account.accountId, account.apiKey);
+      const webhookSecret = account.webhookSecret || buildWebhookSecret(account.accountId, account.apiKey);
       const webhookUrl = attachWebhookAuthToken(webhookBaseUrl, webhookAuthToken);
       log?.info(`使用 webhook 地址: ${webhookBaseUrl}`);
       log?.info("Webhook 派生鉴权已启用");
+      if (account.provider === "wechatpadpro") {
+        log?.info("WeChatPadPro Webhook HMAC 验签已启用");
+      }
 
       // 向代理服务注册 webhook。
       log?.info(`向代理服务注册 webhook，wcId=${account.wcId}`);
@@ -650,7 +738,10 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
       const { stop } = await startCallbackServer({
         port,
         path: account.webhookPath,
+        provider: account.provider,
         authToken: webhookAuthToken,
+        signatureSecret: account.provider === "wechatpadpro" ? webhookSecret : undefined,
+        timestampSkewSec: account.webhookTimestampSkewSec,
         onMessage: (message) => {
           handleWeChatMessage({
             cfg,

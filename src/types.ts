@@ -10,6 +10,7 @@ import type {
   WechatRiskControl,
   WechatRoutingPolicy,
   WechatRoutingRule,
+  WechatProvider,
   WechatRuleMatchType,
   WechatSessionMode,
 } from "./config-schema.js";
@@ -27,6 +28,7 @@ export type {
   WechatRiskControl,
   WechatRoutingPolicy,
   WechatRoutingRule,
+  WechatProvider,
   WechatRuleMatchType,
   WechatSessionMode,
 };
@@ -36,6 +38,7 @@ export type ResolvedWeChatAccount = {
   enabled: boolean;
   configured: boolean;
   name?: string;
+  provider: WechatProvider;
   apiKey: string;
   proxyUrl: string;        // 代理服务地址
   wcId?: string;
@@ -44,9 +47,18 @@ export type ResolvedWeChatAccount = {
   headUrl?: string;
   deviceType: string;
   proxy: string;
+  loginProxyUrl?: string;
+  deviceName?: string;
+  deviceId?: string;
   webhookHost?: string;    // Webhook 公网地址（IP、域名，或完整 https:// 地址）
   webhookPort: number;
   webhookPath: string;     // Webhook 路径
+  webhookSecret?: string;
+  webhookMessageTypes?: string[];
+  webhookIncludeSelfMessage: boolean;
+  webhookRetryCount: number;
+  webhookTimeoutSec: number;
+  webhookTimestampSkewSec: number;
   natappEnabled: boolean;
   natapiWebPort: number;
   config: WechatAccountConfig;
@@ -58,9 +70,20 @@ export type LoginStatus =
   | { status: "logged_in"; wcId: string; nickName: string; headUrl?: string };
 
 export type ProxyClientConfig = {
+  provider?: WechatProvider;
   apiKey: string;
   accountId: string;
   baseUrl?: string;
+  deviceType?: string;
+  proxy?: string;
+  loginProxyUrl?: string;
+  deviceName?: string;
+  deviceId?: string;
+  webhookSecret?: string;
+  webhookMessageTypes?: string[];
+  webhookIncludeSelfMessage?: boolean;
+  webhookRetryCount?: number;
+  webhookTimeoutSec?: number;
 };
 
 export type WechatMessageContext = {

@@ -8,6 +8,7 @@ export type WechatChatType = "direct" | "group" | "all";
 export type WechatSessionMode = "default" | "sender" | "group" | "group-member";
 export type WechatReplyMode = "default" | "group" | "direct" | "silent";
 export type WechatRuleMatchType = "command" | "keyword" | "regex";
+export type WechatProvider = "legacy" | "wechatpadpro";
 
 export interface WechatInboundPolicy {
   allowDirect?: boolean;
@@ -81,13 +82,23 @@ export interface WechatSharedConfig {
 export interface WechatAccountConfig extends WechatSharedConfig {
   enabled?: boolean;
   name?: string;
+  provider?: WechatProvider;
   apiKey: string;
   proxyUrl?: string;       // 代理服务地址
   deviceType?: "ipad" | "mac";
   proxy?: string;          // 网络线路
+  loginProxyUrl?: string;  // WeChatPadPro 登录时使用的稳定代理 URL
+  deviceName?: string;     // WeChatPadPro 设备名称
+  deviceId?: string;       // WeChatPadPro 设备 ID
   webhookHost?: string;    // Webhook 公网地址（IP、域名，或完整 https:// 地址）
   webhookPort?: number;
   webhookPath?: string;    // Webhook 路径，默认 /webhook/wechat
+  webhookSecret?: string;  // WeChatPadPro Webhook HMAC 密钥
+  webhookMessageTypes?: string[]; // WeChatPadPro 消息类型过滤
+  webhookIncludeSelfMessage?: boolean;
+  webhookRetryCount?: number;
+  webhookTimeoutSec?: number;
+  webhookTimestampSkewSec?: number;
   natappEnabled?: boolean;
   natapiWebPort?: number;
   wcId?: string;           // 登录后自动填充
@@ -99,13 +110,23 @@ export interface WechatConfig extends WechatSharedConfig {
   enabled?: boolean;
 
   // 简化配置（单账号，顶级字段）
+  provider?: WechatProvider;
   apiKey?: string;
   proxyUrl?: string;
   deviceType?: "ipad" | "mac";
   proxy?: string;
+  loginProxyUrl?: string;
+  deviceName?: string;
+  deviceId?: string;
   webhookHost?: string;    // Webhook 公网地址（IP、域名，或完整 https:// 地址）
   webhookPort?: number;
   webhookPath?: string;    // Webhook 路径
+  webhookSecret?: string;
+  webhookMessageTypes?: string[];
+  webhookIncludeSelfMessage?: boolean;
+  webhookRetryCount?: number;
+  webhookTimeoutSec?: number;
+  webhookTimestampSkewSec?: number;
 
   // 多账号配置（可选）
   accounts?: Record<string, WechatAccountConfig | undefined>;
@@ -117,6 +138,7 @@ const SESSION_MODE_ENUM = ["default", "sender", "group", "group-member"] as cons
 const REPLY_MODE_ENUM = ["default", "group", "direct", "silent"] as const;
 const DEFAULTABLE_REPLY_MODE_ENUM = ["group", "direct", "silent"] as const;
 const RULE_MATCH_TYPE_ENUM = ["command", "keyword", "regex"] as const;
+const PROVIDER_ENUM = ["legacy", "wechatpadpro"] as const;
 
 const inboundPolicySchema = {
   type: "object" as const,
@@ -253,13 +275,26 @@ export const WechatConfigSchema = {
     enabled: { type: "boolean" },
 
     // 简化配置（顶级字段）
+    provider: { type: "string", enum: [...PROVIDER_ENUM] },
     apiKey: { type: "string" },
     proxyUrl: { type: "string" },
     deviceType: { type: "string", enum: ["ipad", "mac"] },
     proxy: { type: "string" },
+    loginProxyUrl: { type: "string" },
+    deviceName: { type: "string" },
+    deviceId: { type: "string" },
     webhookHost: { type: "string" },
     webhookPort: { type: "integer" },
     webhookPath: { type: "string" },
+    webhookSecret: { type: "string" },
+    webhookMessageTypes: {
+      type: "array" as const,
+      items: { type: "string" },
+    },
+    webhookIncludeSelfMessage: { type: "boolean" },
+    webhookRetryCount: { type: "integer" },
+    webhookTimeoutSec: { type: "integer" },
+    webhookTimestampSkewSec: { type: "integer" },
     ...sharedConfigProperties,
 
     // 多账号配置
@@ -271,13 +306,26 @@ export const WechatConfigSchema = {
         properties: {
           enabled: { type: "boolean" },
           name: { type: "string" },
+          provider: { type: "string", enum: [...PROVIDER_ENUM] },
           apiKey: { type: "string" },
           proxyUrl: { type: "string" },
           deviceType: { type: "string", enum: ["ipad", "mac"] },
           proxy: { type: "string" },
+          loginProxyUrl: { type: "string" },
+          deviceName: { type: "string" },
+          deviceId: { type: "string" },
           webhookHost: { type: "string" },
           webhookPort: { type: "integer" },
           webhookPath: { type: "string" },
+          webhookSecret: { type: "string" },
+          webhookMessageTypes: {
+            type: "array" as const,
+            items: { type: "string" },
+          },
+          webhookIncludeSelfMessage: { type: "boolean" },
+          webhookRetryCount: { type: "integer" },
+          webhookTimeoutSec: { type: "integer" },
+          webhookTimestampSkewSec: { type: "integer" },
           natappEnabled: { type: "boolean" },
           natapiWebPort: { type: "integer" },
           wcId: { type: "string" },
