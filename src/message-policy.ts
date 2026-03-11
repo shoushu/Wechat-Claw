@@ -202,7 +202,7 @@ export function resolveReplyMode(params: {
     ? evaluation.replyMode
     : account.config.reply?.defaultGroupReplyMode ?? "group";
 
-  return configured === "default" ? "group" : configured;
+  return configured;
 }
 
 export function resolveRoutePeer(params: {
@@ -368,7 +368,7 @@ function matchesRule(
   if (rule.chatType && rule.chatType !== "all" && rule.chatType !== chatType) {
     return false;
   }
-  if (rule.messageTypes?.length && !rule.messageTypes.includes(message.type)) {
+  if (rule.messageTypes?.length && (message.type === "unknown" || !rule.messageTypes.includes(message.type))) {
     return false;
   }
   if (rule.senderIds?.length && !matchesConfiguredIds(message.sender.id, rule.senderIds)) {

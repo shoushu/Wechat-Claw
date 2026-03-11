@@ -349,7 +349,7 @@ function buildGroupMessage(overrides?: Partial<WechatMessageContext>): WechatMes
   };
 }
 
-function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+function normalizeHeaders(headers: any): Record<string, string> {
   if (!headers) {
     return {};
   }
