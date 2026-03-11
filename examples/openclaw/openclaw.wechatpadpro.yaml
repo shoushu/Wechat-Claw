@@ -1,0 +1,48 @@
+channels:
+  wechat:
+    enabled: true
+    provider: "wechatpadpro"
+    apiKey: "replace-with-your-business-api-key"
+    proxyUrl: "http://wechatpadpro:1238"
+    deviceType: "ipad"
+    loginProxyUrl: "socks5://your-stable-proxy:1080"
+    webhookHost: "https://your-domain.example.com"
+    webhookPort: 18792
+    webhookPath: "/webhook/wechat"
+    inbound:
+      allowDirect: true
+      allowGroup: true
+      requireMentionInGroup: true
+      commandPrefixes: ["/", "#"]
+      allowedMessageTypes: ["text", "image", "file", "voice", "video"]
+    reply:
+      defaultGroupReplyMode: "group"
+      mentionSenderInGroup: true
+      mentionTemplate: "@{name} "
+    riskControl:
+      dedupWindowMs: 1800000
+      dedupMaxSize: 1000
+      senderRateLimitPerMinute: 6
+      groupRateLimitPerMinute: 30
+      sensitiveWords: ["退款", "投诉", "人工"]
+      sensitiveReplyText: "该类诉求已进入人工处理通道。"
+      rateLimitReplyText: "消息较多，请稍后再试。"
+      blockOnSensitive: true
+    operations:
+      qrThrottleMs: 90000
+      qrDisplayThrottleMs: 30000
+      loginPollIntervalMs: 5000
+      loginTimeoutMs: 300000
+      startupBaseBackoffMs: 15000
+      startupMaxBackoffMs: 600000
+      startupCircuitBreakerThreshold: 4
+      startupCircuitOpenMs: 900000
+      outboundMinIntervalMs: 1500
+      outboundRetryCount: 3
+      outboundRetryDelayMs: 2000
+      outboundMaxRetryDelayMs: 20000
+      outboundCircuitBreakerThreshold: 5
+      outboundCircuitOpenMs: 300000
+      statusProbeIntervalMs: 60000
+      statusProbeFailureThreshold: 3
+      stateFile: "~/.openclaw/wechat-state.json"

@@ -13,6 +13,18 @@
 
 当前推荐的代理后端是 `WeChatPadPro`，同时仍兼容旧版通用 Proxy API。
 
+## 完整流程入口
+
+如果你想把整套自托管流程公开给别人，而不只是告诉他们“填几个配置”：
+
+- 完整说明文档：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+- `WeChatPadPro` 脱敏 compose：[`examples/wechatpadpro/docker-compose.yml`](examples/wechatpadpro/docker-compose.yml)
+- `WeChatPadPro` 脱敏环境变量：[`examples/wechatpadpro/.env.example`](examples/wechatpadpro/.env.example)
+- `OpenClaw` 对接示例：[`examples/openclaw/openclaw.wechatpadpro.yaml`](examples/openclaw/openclaw.wechatpadpro.yaml)
+- Nginx 回调示例：[`examples/nginx/wechat-webhook.conf`](examples/nginx/wechat-webhook.conf)
+
+本仓库不会分发 `WeChatPadPro` 源码，只提供脱敏后的部署模板和对接流程。
+
 ## 特性
 
 - 支持微信私聊、群聊消息接入
@@ -135,6 +147,20 @@ docker compose restart openclaw-gateway
 ```bash
 docker compose logs -f openclaw-gateway
 ```
+
+## 完整自托管流程
+
+如果你准备把 `WeChatPadPro + OpenClaw + Wechat-Claw` 一起部署给别人，直接看：
+
+- [`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+
+这份文档已经把以下内容串起来了：
+
+- `WeChatPadPro` 的脱敏部署模板
+- `OpenClaw` 的对接配置
+- Docker 网络规划
+- Nginx Webhook 转发
+- 扫码登录和最小验收
 
 ## WeChatPadPro 推荐配置
 
