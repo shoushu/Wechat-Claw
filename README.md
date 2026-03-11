@@ -99,6 +99,8 @@ openclaw gateway start --verbose
 
 首次启动时，你会看到二维码或扫码链接。扫码成功后，再用微信给机器人发一条 `/status`；只要能正常回复，说明接入已经打通。
 
+现在默认会在日志里直接打印可扫码的终端二维码，同时保留二维码地址作为兜底，不需要再额外把链接粘到浏览器里。
+
 ## Docker 部署
 
 如果你希望把 `OpenClaw` 也跑在 Docker 里，推荐先按官方 Docker 指南准备运行环境：
@@ -124,6 +126,12 @@ Docker 场景最容易踩的坑：
 - `webhookHost` 必须让 Proxy API 反向访问得到，仅本地回环地址无效
 - 如果你走 Nginx 或云负载均衡，`webhookHost` 直接填完整的 `https://你的域名`
 - 插件安装完成后要重启 `openclaw-gateway`，否则新插件不会被加载
+
+首次登录时，直接看网关日志就可以扫码：
+
+```bash
+docker compose logs -f openclaw-gateway
+```
 
 ## 安装
 

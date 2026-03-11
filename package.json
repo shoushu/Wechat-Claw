@@ -50,8 +50,11 @@
       "defaultChoice": "npm"
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0"
+  },
   "devDependencies": {
+    "@types/qrcode-terminal": "^0.12.2",
     "@types/node": "^20.10.0",
     "openclaw": ">=2026.2.9",
     "tsx": "^4.7.0",

@@ -5,6 +5,7 @@
 
 import assert from "node:assert/strict";
 import { wechatPlugin } from "./src/channel.js";
+import { displayQRCode, renderTerminalQRCode } from "./src/utils/qrcode.js";
 import { buildWebhookBaseUrl } from "./src/webhook-url.js";
 import type { ClawdbotConfig } from "openclaw/plugin-sdk";
 
@@ -196,6 +197,35 @@ async function testWebhookUrl() {
   console.log("2. IP + 端口 ->", hostAndPort);
 }
 
+async function testTerminalQRCode() {
+  console.log("\n🧾 验证终端二维码输出\n");
+
+  const url = "https://example.com/wechat-login";
+  const qr = await renderTerminalQRCode(url);
+  assert.ok(qr.trim().length > 0, "终端二维码不应为空");
+  assert.ok(qr.split("\n").length > 4, "终端二维码应包含多行输出");
+  console.log("1. 终端二维码字符串生成成功");
+
+  const originalLog = console.log;
+  const captured: string[] = [];
+  console.log = (...args: unknown[]) => {
+    captured.push(args.join(" "));
+  };
+
+  try {
+    await displayQRCode(url);
+  } finally {
+    console.log = originalLog;
+  }
+
+  const output = captured.join("\n");
+  assert.match(output, /请使用微信扫描二维码登录/);
+  assert.match(output, /二维码地址:/);
+  assert.match(output, /https:\/\/example\.com\/wechat-login/);
+  assert.ok(output.includes(qr), "displayQRCode 应输出终端二维码");
+  console.log("2. 登录提示已包含终端二维码与链接兜底");
+}
+
 // ===== 验证网关启动（可选，需要代理服务）=====
 async function testGateway() {
   console.log("\n🚀 验证网关模块\n");
@@ -245,6 +275,12 @@ async function main() {
     await testWebhookUrl();
   } catch (err: any) {
     console.error("Webhook 地址测试失败:", err.message);
+  }
+
+  try {
+    await testTerminalQRCode();
+  } catch (err: any) {
+    console.error("终端二维码测试失败:", err.message);
   }
 
   try {
