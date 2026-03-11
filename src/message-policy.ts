@@ -59,6 +59,10 @@ export function evaluateWeChatMessage(params: {
     return reject("群聊入口已关闭", message, account);
   }
 
+  if (message.type === "unknown") {
+    return reject("未知消息类型暂未接入", message, account);
+  }
+
   const allowedMessageTypes = inbound.allowedMessageTypes ?? [...DEFAULT_ALLOWED_MESSAGE_TYPES];
   if (!allowedMessageTypes.includes(message.type)) {
     return reject(`消息类型 ${message.type} 未放行`, message, account);
