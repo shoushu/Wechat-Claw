@@ -1,6 +1,6 @@
 /**
- * YutoAI 微信节点的兼容运行时调试脚本。
- * 建议在服务器环境执行。
+ * YutoAI 微信节点的兼容运行时验证脚本。
+ * 适合作为本地开发和 CI 的 smoke test。
  */
 
 import assert from "node:assert/strict";
@@ -67,9 +67,9 @@ const mockApi = {
   },
 };
 
-// ===== 调试配置模块 =====
+// ===== 验证配置模块 =====
 async function testConfig() {
-  console.log("\n📋 测试配置模块\n");
+  console.log("\n📋 验证配置模块\n");
 
   // 检查 listAccountIds
   console.log("1. listAccountIds:");
@@ -113,9 +113,9 @@ async function testConfig() {
   console.log("   allowFrom:", allowFrom);
 }
 
-// ===== 调试状态模块 =====
+// ===== 验证状态模块 =====
 async function testStatus() {
-  console.log("\n📊 测试状态模块\n");
+  console.log("\n📊 验证状态模块\n");
 
   // 检查 probeAccount
   console.log("1. probeAccount:");
@@ -140,9 +140,9 @@ async function testStatus() {
   console.log("   告警:", warnings);
 }
 
-// ===== 调试消息目标解析 =====
+// ===== 验证消息目标解析 =====
 async function testMessaging() {
-  console.log("\n💬 测试消息模块\n");
+  console.log("\n💬 验证消息模块\n");
 
   // 检查 normalizeTarget
   console.log("1. normalizeTarget:");
@@ -172,9 +172,9 @@ async function testMessaging() {
   }
 }
 
-// ===== 调试网关启动（可选，需要代理服务）=====
+// ===== 验证网关启动（可选，需要代理服务）=====
 async function testGateway() {
-  console.log("\n🚀 测试网关模块\n");
+  console.log("\n🚀 验证网关模块\n");
   console.log("注意: 这需要代理服务运行，跳过详细测试");
 
   // 这里只检查 gateway 对象存在
@@ -182,9 +182,9 @@ async function testGateway() {
   console.log("1. gateway.startAccount 存在?", !!wechatPlugin.gateway?.startAccount);
 }
 
-// ===== 调试发送消息（可选，需要代理服务）=====
+// ===== 验证发送消息（可选，需要代理服务）=====
 async function testOutbound() {
-  console.log("\n📤 测试发送模块\n");
+  console.log("\n📤 验证发送模块\n");
   console.log("注意: 这需要代理服务和登录状态，跳过详细测试");
 
   assert.ok(wechatPlugin.outbound?.sendText);
@@ -193,10 +193,10 @@ async function testOutbound() {
   console.log("2. sendMedia 存在?", !!wechatPlugin.outbound?.sendMedia);
 }
 
-// ===== 主调试流程 =====
+// ===== 主验证流程 =====
 async function main() {
   console.log("=".repeat(60));
-  console.log("🧪 YutoAI 微信节点服务器调试");
+  console.log("🧪 YutoAI 微信节点通道验证");
   console.log("=".repeat(60));
 
   try {
@@ -230,13 +230,13 @@ async function main() {
   }
 
   console.log("\n" + "=".repeat(60));
-  console.log("✅ 基础调试完成");
+  console.log("✅ 基础验证完成");
   console.log("=".repeat(60));
 
   console.log("\n💡 下一步:");
-  console.log("   1. 启动代理服务: cd proxy-service && npm run dev");
-  console.log("   2. 运行集成测试: npx tsx test-integration.ts");
-  console.log("   3. 或使用兼容运行时进行完整验证");
+  console.log("   1. 在真实代理环境下联调登录与收发");
+  console.log("   2. 把该脚本接入 CI 或发布前验证流程");
+  console.log("   3. 按需补充更贴近实际代理行为的集成测试");
 }
 
 main().catch(console.error);

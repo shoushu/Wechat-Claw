@@ -1,6 +1,6 @@
 /**
- * YutoAI 微信节点调试脚本。
- * 建议只在服务器环境运行，不在本地落任何构建产物。
+ * YutoAI 微信节点插件验证脚本。
+ * 用于验证 Webhook 回调与鉴权逻辑。
  */
 
 import assert from "node:assert/strict";
@@ -9,7 +9,7 @@ import { startCallbackServer } from "./src/callback-server.js";
 import type { WechatMessageContext } from "./src/types.js";
 import { buildWebhookAuthToken, attachWebhookAuthToken } from "./src/webhook-auth.js";
 
-// ===== 调试配置 =====
+// ===== 验证配置 =====
 const TEST_CONFIG = {
   apiKey: "test_api_key_xxx",
   accountId: "default",
@@ -22,9 +22,9 @@ const WEBHOOK_AUTH_TOKEN = buildWebhookAuthToken(
 );
 let receivedMessage: WechatMessageContext | null = null;
 
-// ===== 调试 1: ProxyClient =====
+// ===== 验证 1: ProxyClient =====
 async function testProxyClient() {
-  console.log("\n🧪 调试 ProxyClient...");
+  console.log("\n🧪 验证 ProxyClient...");
 
   const client = new ProxyClient({
     apiKey: TEST_CONFIG.apiKey,
@@ -34,26 +34,26 @@ async function testProxyClient() {
 
   try {
     // 检查账号状态
-    console.log("  - 调试 getStatus()");
+    console.log("  - 验证 getStatus()");
     const status = await client.getStatus();
     console.log("  ✓ Status:", status);
   } catch (err: any) {
-    console.log("  ✗ getStatus 调试失败:", err.message);
+    console.log("  ✗ getStatus 验证失败:", err.message);
   }
 
   try {
     // 检查二维码拉取
-    console.log("  - 调试 getQRCode()");
+    console.log("  - 验证 getQRCode()");
     const qr = await client.getQRCode("ipad", "2");
     console.log("  ✓ QRCode:", qr);
   } catch (err: any) {
-    console.log("  ✗ getQRCode 调试失败:", err.message);
+    console.log("  ✗ getQRCode 验证失败:", err.message);
   }
 }
 
-// ===== 调试 2: 回调服务 =====
+// ===== 验证 2: 回调服务 =====
 async function testCallbackServer() {
-  console.log("\n🧪 调试 CallbackServer...");
+  console.log("\n🧪 验证 CallbackServer...");
 
   try {
     const { port, stop } = await startCallbackServer({
@@ -65,21 +65,21 @@ async function testCallbackServer() {
       },
     });
 
-    console.log(`  ✓ 服务器启动在端口 ${port}`);
+    console.log(`  ✓ 回调服务启动在端口 ${port}`);
 
     // 5 秒后自动停止
     setTimeout(() => {
       stop();
-      console.log("  ✓ 服务器已停止");
+      console.log("  ✓ 回调服务已停止");
     }, 5000);
   } catch (err: any) {
     console.log("  ✗ 启动失败:", err.message);
   }
 }
 
-// ===== 调试 3: 模拟消息接收 =====
+// ===== 验证 3: 模拟消息接收 =====
 async function testWebhookReceive() {
-  console.log("\n🧪 调试 Webhook 接收...");
+  console.log("\n🧪 验证 Webhook 接收...");
 
   // 模拟发送一个 webhook 请求到本地服务
   const testPayload = {
@@ -122,23 +122,23 @@ async function testWebhookReceive() {
   }
 }
 
-// ===== 主调试流程 =====
+// ===== 主验证流程 =====
 async function main() {
-  console.log("🚀 开始 YutoAI 微信节点服务器调试\n");
+  console.log("🚀 开始 YutoAI 微信节点插件验证\n");
 
-  // 调试 ProxyClient
+  // 验证 ProxyClient
   await testProxyClient();
 
-  // 调试回调服务
+  // 验证回调服务
   await testCallbackServer();
 
   // 等待回调服务启动
   await new Promise((r) => setTimeout(r, 1000));
 
-  // 调试 Webhook 接收
+  // 验证 Webhook 接收
   await testWebhookReceive();
 
-  console.log("\n✅ 调试完成");
+  console.log("\n✅ 验证完成");
   process.exit(0);
 }
 

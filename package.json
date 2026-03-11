@@ -16,6 +16,10 @@
     "type": "git",
     "url": "git+https://github.com/hkyutong/Wechat-Claw.git"
   },
+  "bugs": {
+    "url": "https://github.com/hkyutong/Wechat-Claw/issues"
+  },
+  "homepage": "https://github.com/hkyutong/Wechat-Claw#readme",
   "keywords": [
     "wechat-claw",
     "wechat",
@@ -24,6 +28,9 @@
     "plugin",
     "yutoai"
   ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "openclaw": {
     "extensions": [
       "./index.ts"
@@ -59,6 +66,7 @@
     "test:channel": "npx tsx test-channel.ts",
     "test:plugin": "npx tsx test-plugin.ts",
     "test:business": "npx tsx test-business.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run test"
   }
 }

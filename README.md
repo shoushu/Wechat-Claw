@@ -1,27 +1,50 @@
 # YutoAI 微信节点
 
-YutoAI 微信节点用于把微信账号接入 Proxy API 和兼容运行时，面向私聊、群聊、扫码登录和回调收发场景。
+`wechat-claw` 是一个面向 `OpenClaw` 的微信通道插件，通过代理层的 Proxy API 接入微信账号，提供消息接收、规则处理、回复分发和 Webhook 回调能力。
 
-当前为了兼容既有运行时，仍保留以下技术标识：
-- 通道 id 为 `wechat`
-- 安装包名为 `wechat-claw`
-- 命令入口仍使用 `openclaw`
+项目目标很明确：把微信账号稳定接入 `OpenClaw`，并且把“群聊门控、规则路由、回复策略、基础风控”这些高频能力做成可配置的通道层，而不是散落在业务代码里的临时判断。
 
-这三项属于兼容层，不是对外品牌暴露。
+## 特性
 
-## 核心能力
-
-- 微信私聊与群聊接入
-- 文本、图片、视频、文件、语音消息接入
-- 群聊 @ 门控、命令前缀、黑白名单
-- 关键词 / 命令规则驱动的路由覆写与自动动作
-- 会话粒度控制，可按发送人、群、群成员拆分 session
-- 群回群、群转私聊、静默入链路三种回复策略
-- 敏感词、去重、限流等基础风控
+- 支持微信私聊、群聊消息接入
+- 支持文本、图片、视频、文件、语音消息入站解析
+- 支持群聊 `@` 提及门控、命令前缀、群/用户白名单与黑名单
+- 支持规则驱动的路由覆写：关键词、命令、正则、群、用户、多账号
+- 支持 `default`、`sender`、`group`、`group-member` 四种会话粒度
+- 支持群回群、群转私聊、静默入链路三种回复模式
+- 支持去重、限流、敏感词拦截等基础风控
+- 支持二维码登录、登录状态探测、Webhook 自动注册
+- 支持 `OpenClaw` reply dispatcher，沿用分段、延迟和 typing 能力
 - 内建运维命令：`/ping`、`/status`、`/help`
-- 二维码登录与登录态轮询
-- 单账号/多账号配置
-- Webhook 回调接收与消息分发
+
+## 适用范围
+
+这个仓库定位为独立开源的微信通道插件，只负责微信侧接入与 `OpenClaw` 通道集成。
+
+以下能力不在当前仓库范围内：
+
+- Penum 侧业务同步
+- 工单系统对接
+- 私有业务数据库或内部审计平台接入
+
+如果你需要这些能力，建议在上层业务仓库中基于本插件继续扩展。
+
+## 兼容标识
+
+为了兼容现有运行时，项目保留以下技术标识：
+
+- 通道 id: `wechat`
+- 包名: `wechat-claw`
+- 运行时入口: `openclaw`
+
+这些属于技术兼容层，不影响对外品牌命名。
+
+## 环境要求
+
+- Node.js `>= 20`
+- `OpenClaw >= 2026.2.9`
+- 可用的微信 Proxy API 服务
+- 能被代理服务访问到的 Webhook 地址
 
 ## 安装
 
@@ -35,16 +58,16 @@ openclaw plugins install wechat-claw
 openclaw plugins update wechat
 ```
 
-## 必填配置
+## 最小配置
 
 ```bash
 openclaw config set channels.wechat.apiKey "your-api-key"
-openclaw config set channels.wechat.proxyUrl "http://你的代理服务:13800"
-openclaw config set channels.wechat.webhookHost "你的公网 IP 或域名"
+openclaw config set channels.wechat.proxyUrl "http://your-proxy-service:13800"
+openclaw config set channels.wechat.webhookHost "your-public-host"
 openclaw config set channels.wechat.enabled true
 ```
 
-## 推荐单账号配置
+## 单账号配置示例
 
 ```yaml
 channels:
@@ -125,48 +148,107 @@ channels:
 openclaw gateway start
 ```
 
-首次启动会输出二维码或扫码链接。用微信完成扫码后，节点会自动轮询登录状态并注册回调地址。
+首次启动会输出二维码或扫码链接。完成扫码后，节点会自动轮询登录状态并向代理服务注册回调地址。
 
-## 运行说明
+## 配置说明
 
-- `proxyUrl` 必填，示例统一使用 `13800`
-- `webhookHost` 建议显式配置公网 IP 或域名，不要依赖自动探测
-- `webhookPath` 默认是 `/webhook/wechat`，现在服务端和注册逻辑都支持自定义路径
-- 节点会自动为 webhook 注册地址附加派生鉴权参数，反向代理不要丢弃查询参数
-- 不带前缀的 `xxxx@chatroom` 会自动按群目标处理
-- 规则 `autoReplyText` 支持模板变量：`{{sender}}`、`{{senderId}}`、`{{group}}`、`{{account}}`、`{{content}}`、`{{command}}`
-- `reply.defaultGroupReplyMode` 支持 `group`、`direct`、`silent`
-- `routing.defaultSessionMode` / `rules[].sessionMode` 支持 `default`、`sender`、`group`、`group-member`
-- 命中 `rules[].routeKey` 时，会用该键参与智能体路由解析，适合把不同群或关键词导向不同业务智能体
-- `/ping`、`/status`、`/help` 是内建命令；若不需要，可把 `operations.enableBuiltinCommands` 设为 `false`
-- 回复分发与回调注册都依赖同一份 `proxyUrl`
-- 非图片媒体外发会自动回退成文本链接，避免因为代理端能力不一致导致发送失败
+### `inbound`
 
-## 常见业务模式
+- `allowDirect`: 是否允许私聊进入
+- `allowGroup`: 是否允许群聊进入
+- `requireMentionInGroup`: 群聊是否要求 `@`
+- `requireCommandPrefixInGroup`: 群聊是否要求命令前缀
+- `commandPrefixes`: 命令前缀列表
+- `allowedMessageTypes`: 放行的消息类型
+- `allowSenders` / `blockSenders`: 用户白名单 / 黑名单
+- `allowGroups` / `blockGroups`: 群白名单 / 黑名单
 
-- 群里只有被 @ 才回复：`inbound.requireMentionInGroup: true`
-- 某些群只走指定智能体：给 `routing.rules[]` 配 `groupIds + agentId + routeKey`
-- 群里触发后改私聊继续：把对应规则的 `replyMode` 设为 `direct`
-- 关键词直接执行动作不进智能体：设置 `autoReplyText` 并把 `skipAgent` 设为 `true`
+### `routing`
+
+- `defaultAgentId`: 默认 agent 覆写
+- `defaultSessionMode`: 默认 session 颗粒度
+- `rules[]`: 规则列表，支持按聊天类型、群、用户、消息类型、关键词、命令、正则匹配
+- `routeKey`: 自定义路由键，适合把不同群或关键词导向不同业务智能体
+- `replyMode`: `group`、`direct`、`silent`
+
+### `reply`
+
+- `defaultGroupReplyMode`: 群默认回复模式
+- `mentionSenderInGroup`: 群回复时是否自动 `@` 发送人
+- `mentionTemplate`: 群回复前缀模板，支持 `{name}` 和 `{id}`
+
+### `riskControl`
+
+- `dedupWindowMs`: 去重窗口
+- `dedupMaxSize`: 去重缓存上限
+- `senderRateLimitPerMinute`: 单用户每分钟限流
+- `groupRateLimitPerMinute`: 单群每分钟限流
+- `sensitiveWords`: 敏感词列表
+- `sensitiveReplyText`: 命中敏感词后的提示文案
+- `rateLimitReplyText`: 命中限流后的提示文案
+
+### `operations`
+
+- `enableBuiltinCommands`: 是否启用 `/ping`、`/status`、`/help`
+
+## 常见用法
+
+- 群里只有被 `@` 才回复：`inbound.requireMentionInGroup: true`
+- 某些群走不同智能体：在 `routing.rules[]` 中设置 `groupIds + agentId + routeKey`
+- 群里触发后改私聊继续：把规则的 `replyMode` 设为 `direct`
+- 命中关键词后直接回复，不进入智能体：设置 `autoReplyText` 并把 `skipAgent` 设为 `true`
 - 风险话术直接拦截：配置 `riskControl.sensitiveWords` 和 `sensitiveReplyText`
 
-## 服务器验证建议
+## 开发与验证
 
-调试和验证建议只在服务器执行：
+安装依赖：
+
+```bash
+npm ci
+```
+
+类型检查：
 
 ```bash
 npm run typecheck
-npm run test
 ```
 
-如果服务器宿主机没有 Node，也可以直接用 Docker 验证：
+运行全部验证：
+
+```bash
+npm run verify
+```
+
+如果本机没有 Node 环境，也可以使用 Docker：
 
 ```bash
 docker run --rm -v "$(pwd):/app" -w /app node:22-bullseye \
-  bash -lc 'npm ci --ignore-scripts && npm run typecheck && npm run test'
+  bash -lc 'npm ci --ignore-scripts && npm run verify'
 ```
 
-本地工作区只保留源码，不落构建产物。
+## 测试说明
+
+- `test-channel.ts`: 通道配置、目录查询、状态接口和目标解析
+- `test-plugin.ts`: Webhook 接收与鉴权验证
+- `test-business.ts`: 业务规则链路，包括群 `@` 门控、路由覆写、私聊回落、敏感词拦截和媒体消息入链路
+
+这些测试不依赖真实微信账号，适合作为本地开发和 CI smoke test。
+
+## 已知限制
+
+- 当前稳定的出站能力是文本和图片；其他媒体类型会回退成文本链接，避免因为代理侧实现差异导致发送失败
+- 登录态目前依赖代理服务返回和运行时配置，不包含独立持久化存储
+- 规则中的 `auditTag` 当前只写入上下文，不负责外部审计系统落库
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request。提交前建议先运行：
+
+```bash
+npm run verify
+```
+
+更多说明见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 ## License
 
