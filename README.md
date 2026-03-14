@@ -1,44 +1,23 @@
 # OpenClaw WeChat
 
-`Wechat-Claw` 是一个面向 `OpenClaw` 的开源微信通道插件。
+`Wechat-Claw` 是 `OpenClaw` 的微信通道插件，通过 Proxy API 接入微信账号。
 
-它只做一件事：把微信账号稳定接入 `OpenClaw`。仓库内保留的能力都围绕通道适配展开，包括消息接入、规则门控、回复分发、Webhook 回调和基础风控；不包含私有业务系统、工单流转或内部数据库逻辑。
+仓库只包含通道适配层代码、公开部署文档和示例配置，不包含私有业务系统、工单流转、内部数据库或内部审计逻辑。
 
-## 项目定位
+## 功能
 
-- 适配 `OpenClaw`
-- 对接微信代理服务
-- 输出公开可复现的安装和验证流程
-- 保持插件独立，不绑定私有业务仓库
-
-当前推荐的代理后端是 `WeChatPadPro`，同时仍兼容旧版通用 Proxy API。
-
-## 完整流程入口
-
-如果你想把整套自托管流程公开给别人，而不只是告诉他们“填几个配置”：
-
-- 完整说明文档：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
-- `WeChatPadPro` 脱敏 compose：[`examples/wechatpadpro/docker-compose.yml`](examples/wechatpadpro/docker-compose.yml)
-- `WeChatPadPro` 脱敏环境变量：[`examples/wechatpadpro/.env.example`](examples/wechatpadpro/.env.example)
-- `OpenClaw` 对接示例：[`examples/openclaw/openclaw.wechatpadpro.yaml`](examples/openclaw/openclaw.wechatpadpro.yaml)
-- Nginx 回调示例：[`examples/nginx/wechat-webhook.conf`](examples/nginx/wechat-webhook.conf)
-
-本仓库不会分发 `WeChatPadPro` 源码，只提供脱敏后的部署模板和对接流程。
-
-## 特性
-
-- 支持微信私聊、群聊消息接入
-- 支持文本、图片、视频、文件、语音消息入站解析
-- 支持群聊 `@` 提及门控、命令前缀、群/用户白名单与黑名单
-- 支持规则驱动的路由覆写：关键词、命令、正则、群、用户、多账号
-- 支持 `default`、`sender`、`group`、`group-member` 四种会话粒度
-- 支持群回群、群转私聊、静默入链路三种回复模式
-- 支持去重、限流、敏感词拦截等基础风控
-- 支持二维码登录、登录状态探测、Webhook 自动注册
-- 支持 `OpenClaw` reply dispatcher，沿用分段、延迟和 typing 能力
+- 微信私聊、群聊消息接入
+- 文本、图片、视频、文件、语音消息解析
+- 群聊 `@` 提及门控、命令前缀、群/用户白名单与黑名单
+- 规则驱动的路由覆写：关键词、命令、正则、群、用户、多账号
+- `default`、`sender`、`group`、`group-member` 四种会话粒度
+- 群回群、群转私聊、静默入链路三种回复模式
+- 去重、限流、敏感词拦截等基础风控
+- 二维码登录、登录状态探测、Webhook 自动注册
+- `OpenClaw` reply dispatcher 集成
 - 内建运维命令：`/ping`、`/status`、`/help`
 
-## 边界
+## 范围外内容
 
 以下内容不在本仓库范围内：
 
@@ -47,25 +26,35 @@
 - 内部标签平台、审计平台、数据库写入
 - 自定义模型服务封装
 
-如果你需要这些能力，建议在上层业务仓库基于本插件扩展，而不是把私有逻辑直接塞回通道层。
+这类能力应放在上层业务仓库中实现，不应回写到通道层。
+
+## 仓库内容
+
+- 完整自托管说明：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+- `WeChatPadPro` 脱敏 compose：[`examples/wechatpadpro/docker-compose.yml`](examples/wechatpadpro/docker-compose.yml)
+- `WeChatPadPro` 脱敏环境变量：[`examples/wechatpadpro/.env.example`](examples/wechatpadpro/.env.example)
+- `OpenClaw` 对接示例：[`examples/openclaw/openclaw.wechatpadpro.yaml`](examples/openclaw/openclaw.wechatpadpro.yaml)
+- Nginx 回调示例：[`examples/nginx/wechat-webhook.conf`](examples/nginx/wechat-webhook.conf)
+
+本仓库不分发 `WeChatPadPro` 源码，只提供部署模板和对接示例。
 
 ## 兼容标识
 
-为了与 `OpenClaw` 当前插件发现和自动启用逻辑保持一致，项目保留以下技术标识：
+为了兼容 `OpenClaw` 当前的插件发现和自动启用逻辑，仓库保留以下标识：
 
 - 仓库名：`Wechat-Claw`
 - npm 包名：`@hkyutong/wechat`
 - 插件 id：`wechat`
 - 通道 id：`wechat`
 
-这几个标识分别服务于源码仓库、包元数据和运行时加载，不建议随意改动。
+这些标识分别用于源码仓库、包元数据和运行时加载，不应随意改动。
 
 ## 环境要求
 
 - Node.js `>= 22`
 - `OpenClaw >= 2026.2.9`
 - 可用的微信代理服务
-- 能被代理服务访问到的 Webhook 地址
+- 可被代理服务访问的 Webhook 地址
 
 ## 组件关系
 
@@ -73,9 +62,9 @@
 - `OpenClaw WeChat`：本仓库，负责微信通道接入
 - `Proxy API`：负责微信登录、收消息、发消息
 
-README 里的 `apiKey` 指的是微信代理服务的鉴权凭证，不是模型厂商的 API Key。
+README 中的 `apiKey` 指微信代理服务的鉴权凭证，不是模型厂商的 API Key。
 
-## 快速开始
+## 安装
 
 ### 1. 安装 OpenClaw
 
@@ -84,14 +73,12 @@ npm install -g openclaw@latest
 openclaw onboard --install-daemon
 ```
 
-### 2. 拉取源码并安装插件
+### 2. 拉取插件并从本地路径安装
 
-`OpenClaw` 当前只接受 npm registry 包名、归档文件或本地路径安装，不接受 GitHub URL 直接安装。
-
-最稳妥的公开安装方式是先 clone，再从本地路径安装：
+`OpenClaw` 当前支持 npm registry 包、归档文件和本地路径安装，不支持直接使用 GitHub URL 安装插件。
 
 ```bash
-git clone https://github.com/hkyutong/Wechat-Claw.git
+git clone git@github.com:hkyutong/Wechat-Claw.git
 cd Wechat-Claw
 openclaw plugins install "$(pwd)"
 cd ..
@@ -111,10 +98,10 @@ openclaw config set channels.wechat.webhookPort 18792
 
 字段说明：
 
-- `apiKey`：微信代理服务的鉴权 Key
+- `apiKey`：微信代理服务鉴权 Key
 - `proxyUrl`：微信代理服务地址
-- `deviceType`：当前推荐 `ipad`
-- `webhookHost`：代理服务可以回调到的公网地址
+- `deviceType`：当前常用值为 `ipad`
+- `webhookHost`：代理服务可回调到的公网地址
 - `webhookPort`：本地回调服务监听端口
 
 ### 4. 启动网关
@@ -123,14 +110,14 @@ openclaw config set channels.wechat.webhookPort 18792
 openclaw gateway start --verbose
 ```
 
-首次启动时，日志里会直接打印终端二维码和扫码链接。扫码成功后，可以在微信里发送 `/status` 做最小验收。
+首次启动时，日志会输出终端二维码和扫码链接。扫码完成后，可在微信中发送 `/status` 做最小验收。
 
 ## Docker 部署
 
-如果你把 `OpenClaw` 跑在 Docker 里，先把仓库 clone 到宿主机，再把源码目录挂进 `openclaw-cli` 容器：
+如果 `OpenClaw` 运行在 Docker 中，先把仓库拉到宿主机，再把源码目录挂载进 `openclaw-cli` 容器：
 
 ```bash
-git clone https://github.com/hkyutong/Wechat-Claw.git
+git clone git@github.com:hkyutong/Wechat-Claw.git
 docker compose run --rm -v "$PWD/Wechat-Claw:/plugin:ro" openclaw-cli plugins install /plugin
 docker compose run --rm openclaw-cli config set channels.wechat.enabled true
 docker compose run --rm openclaw-cli config set channels.wechat.provider "wechatpadpro"
@@ -142,53 +129,49 @@ docker compose run --rm openclaw-cli config set channels.wechat.webhookPort 1879
 docker compose restart openclaw-gateway
 ```
 
-扫码时直接看网关日志：
+扫码时直接查看网关日志：
 
 ```bash
 docker compose logs -f openclaw-gateway
 ```
 
-## 完整自托管流程
+## 完整自托管资料
 
-如果你准备把 `WeChatPadPro + OpenClaw + Wechat-Claw` 一起部署给别人，直接看：
+以下文件覆盖 `WeChatPadPro + OpenClaw + Wechat-Claw` 的公开部署流程：
 
-- [`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+- 说明文档：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+- `WeChatPadPro` compose：[`examples/wechatpadpro/docker-compose.yml`](examples/wechatpadpro/docker-compose.yml)
+- `WeChatPadPro` 环境变量示例：[`examples/wechatpadpro/.env.example`](examples/wechatpadpro/.env.example)
+- `OpenClaw` 配置示例：[`examples/openclaw/openclaw.wechatpadpro.yaml`](examples/openclaw/openclaw.wechatpadpro.yaml)
+- Nginx 回调示例：[`examples/nginx/wechat-webhook.conf`](examples/nginx/wechat-webhook.conf)
 
-这份文档已经把以下内容串起来了：
+## WeChatPadPro 对接说明
 
-- `WeChatPadPro` 的脱敏部署模板
-- `OpenClaw` 的对接配置
-- Docker 网络规划
-- Nginx Webhook 转发
-- 扫码登录和最小验收
+使用 `WeChatPadPro` 时，通常需要注意以下配置：
 
-## WeChatPadPro 推荐配置
+- `proxyUrl` 一般形如 `http://host-or-service-name:1238`
+- `apiKey` 使用业务 `AuthKey`，不是 `ADMIN_KEY`
+- 插件优先使用 `QrLink`，并将二维码打印到终端
+- `webhookHost` 必须是代理服务可反向访问的地址
 
-如果你使用 `WeChatPadPro`：
+以下情况更容易触发风控或导致掉线：
 
-- `proxyUrl` 通常是 `http://host-or-service-name:1238`
-- `apiKey` 填业务 `AuthKey`，不是 `ADMIN_KEY`
-- 插件会优先使用 `QrLink`，并把二维码打印到终端
-- `webhookHost` 应该指向代理服务可以反向访问到的地址
+- 短时间内重复扫码、重复登录、重复登出
+- 频繁切换代理线路或出口 IP
+- 同一微信号同时接入多套 Pad/PC 协议链路
+- 服务频繁离线后再拉起
 
-为了尽量稳定，建议遵守这些操作纪律：
-
-- 固定长期稳定的代理线路，不要频繁切换出口 IP
-- 不要在短时间内重复扫码、重复登录、重复登出
-- 同一个微信号只接入一套协议链路，避免和其他 Pad/PC 组件混用
-- 保持服务长期在线，避免账号反复离线后重新拉起
-
-这些措施可以降低风控概率，但不能把非官方协议的风险降到零。
+这类风险主要来自代理线路、账号环境和登录行为，通道插件只能降低波动，不能消除风险。
 
 ## 稳定性参数
 
-开源版默认已经内置三层稳态控制：
+开源版默认启用了以下控制：
 
-- 登录状态机和二维码节流：复用仍在有效期内的二维码，并限制短时间内重新申请新码
-- 保守重连和熔断：启动失败按指数退避重试，达到阈值后进入冷却期
-- 出站限速与持久化登录态：同账号发送串行化、失败重试、最小发送间隔，以及登录态落盘
+- 登录状态机和二维码节流
+- 启动失败指数退避与熔断
+- 出站限速、失败重试和登录态持久化
 
-常用参数都在 `channels.wechat.operations` 下：
+常用参数位于 `channels.wechat.operations`：
 
 ```yaml
 channels:
@@ -213,12 +196,12 @@ channels:
       stateFile: "~/.openclaw/wechat-state.json"
 ```
 
-建议：
+调参时可按下面的方向处理：
 
-- 如果登录二维码老是刚刷出来就失效，优先检查代理出口，再适当调大 `loginTimeoutMs`
-- 如果你担心频繁重登触发风控，不要调小 `qrThrottleMs` 和 `startupBaseBackoffMs`
-- 如果代理服务偶发抖动，保留默认 `startupCircuit*` 和 `outboundCircuit*`，不要为了“更快恢复”把它们改得过于激进
-- `stateFile` 建议放在持久卷里，这样容器重启后仍能保留登录态和熔断状态
+- 二维码过快失效：先检查代理出口，再考虑调大 `loginTimeoutMs`
+- 担心频繁重登：不要调小 `qrThrottleMs` 和 `startupBaseBackoffMs`
+- 代理服务偶发抖动：保留默认 `startupCircuit*` 和 `outboundCircuit*`
+- 容器重启后需要保留状态：把 `stateFile` 放到持久卷
 
 ## 升级
 
@@ -229,9 +212,9 @@ rm -rf ~/.openclaw/extensions/wechat
 openclaw plugins install /path/to/Wechat-Claw
 ```
 
-如果你跑在 Docker 里，把上面的 `openclaw` 命令换成 `docker compose run --rm openclaw-cli ...` 即可，最后记得重启 `openclaw-gateway`。
+如果运行在 Docker 中，把上面的 `openclaw` 命令替换为 `docker compose run --rm openclaw-cli ...`，然后重启 `openclaw-gateway`。
 
-`openclaw plugins update wechat` 只对 npm 安装有效，不适用于当前这种路径安装。
+`openclaw plugins update wechat` 仅适用于 npm 安装方式，不适用于当前的路径安装。
 
 ## 最小配置示例
 
@@ -331,21 +314,22 @@ channels:
 
 ## 验证
 
-仓库内置了最小验证命令：
+仓库内置最小验证命令：
 
 ```bash
 npm run verify
 ```
 
-这会执行：
+该命令会执行：
 
 - `npm run typecheck`
 - `test-channel.ts`
 - `test-plugin.ts`
 - `test-business.ts`
 - `test-wechatpadpro.ts`
+- `test-stability.ts`
 
-如果你没有在本机准备 Node 环境，也可以用 Docker 临时执行：
+如果本机没有准备 Node 环境，可使用 Docker 临时执行：
 
 ```bash
 docker run --rm -v "$PWD:/app" -w /app node:22-bullseye \
@@ -354,27 +338,27 @@ docker run --rm -v "$PWD:/app" -w /app node:22-bullseye \
 
 ## 常见问题
 
-### 插件装好了但没有加载
+### 插件已安装但没有加载
 
-- 先确认 `openclaw-gateway` 已经重启
-- 再看日志里是否出现 `OpenClaw 微信通道已注册`
+- 确认 `openclaw-gateway` 已重启
+- 查看日志中是否出现 `OpenClaw 微信通道已注册`
 - 检查 `channels.wechat.enabled` 是否为 `true`
 
-### 启动了但没有二维码
+### 启动后没有二维码
 
 - 检查 `channels.wechat.apiKey` 和 `channels.wechat.proxyUrl`
 - 检查代理服务是否可达
-- 检查网关日志里是否已有登录成功状态，已登录时不会重复吐二维码
+- 如果当前账号已经登录，插件不会重复输出二维码
 
 ### Webhook 注册失败
 
-- 检查 `webhookHost` 是否能被代理服务访问
-- 检查 `webhookPort` 是否被放行
-- 如果前面挂了 Nginx 或负载均衡，直接填完整 `https://` 地址
+- 检查 `webhookHost` 是否可被代理服务访问
+- 检查 `webhookPort` 是否已放行
+- 如果前方使用了 Nginx 或负载均衡，直接填写完整 `https://` 地址
 
-### 为什么扫码后还是容易掉线
+### 扫码后仍然容易掉线
 
-这通常是代理线路、设备环境和登录行为共同造成的，不是通道插件单独能完全解决的问题。优先排查出口 IP 稳定性、登录频率和是否与其他协议栈混用。
+优先排查代理出口稳定性、登录频率，以及是否与其他协议栈混用。掉线问题通常不是单一由通道插件引起。
 
 ## 开发
 
@@ -383,7 +367,7 @@ npm ci
 npm run verify
 ```
 
-提交前建议至少补齐对应的验证脚本：
+提交前至少补齐对应的验证脚本：
 
 - 规则和策略改动，优先补 `test-business.ts`
 - 插件入口和运行时兼容改动，优先补 `test-plugin.ts`
