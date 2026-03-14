@@ -30,7 +30,7 @@
 
 ## 仓库内容
 
-- 完整自托管说明：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+- `WeChatPadPro` 部署详解：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
 - `WeChatPadPro` 脱敏 compose：[`examples/wechatpadpro/docker-compose.yml`](examples/wechatpadpro/docker-compose.yml)
 - `WeChatPadPro` 脱敏环境变量：[`examples/wechatpadpro/.env.example`](examples/wechatpadpro/.env.example)
 - `OpenClaw` 对接示例：[`examples/openclaw/openclaw.wechatpadpro.yaml`](examples/openclaw/openclaw.wechatpadpro.yaml)
@@ -137,9 +137,9 @@ docker compose logs -f openclaw-gateway
 
 ## 完整自托管资料
 
-以下文件覆盖 `WeChatPadPro + OpenClaw + Wechat-Claw` 的公开部署流程：
+如果需要从架构、网络方向、Nginx 回调一直看到扫码验收，直接看：
 
-- 说明文档：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
+- 部署详解：[`docs/wechatpadpro-self-hosting.md`](docs/wechatpadpro-self-hosting.md)
 - `WeChatPadPro` compose：[`examples/wechatpadpro/docker-compose.yml`](examples/wechatpadpro/docker-compose.yml)
 - `WeChatPadPro` 环境变量示例：[`examples/wechatpadpro/.env.example`](examples/wechatpadpro/.env.example)
 - `OpenClaw` 配置示例：[`examples/openclaw/openclaw.wechatpadpro.yaml`](examples/openclaw/openclaw.wechatpadpro.yaml)
@@ -150,7 +150,7 @@ docker compose logs -f openclaw-gateway
 使用 `WeChatPadPro` 时，通常需要注意以下配置：
 
 - `proxyUrl` 一般形如 `http://host-or-service-name:1238`
-- `apiKey` 使用业务 `AuthKey`，不是 `ADMIN_KEY`
+- `apiKey` 填可调用代理业务接口的 key；部分版本可直接使用 `ADMIN_KEY`
 - 插件优先使用 `QrLink`，并将二维码打印到终端
 - `webhookHost` 必须是代理服务可反向访问的地址
 
