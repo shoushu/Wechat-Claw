@@ -9,7 +9,6 @@
     "index.ts",
     "src",
     "openclaw.plugin.json",
-    "openclaw-plugin-sdk.d.ts",
     "README.md"
   ],
   "repository": {
@@ -50,13 +49,13 @@
   "devDependencies": {
     "@types/qrcode-terminal": "^0.12.2",
     "@types/node": "^20.10.0",
-    "openclaw": ">=2026.2.9",
+    "openclaw": ">=2026.3.31",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0",
     "zod": "^3.22.4"
   },
   "peerDependencies": {
-    "openclaw": ">=2026.2.9"
+    "openclaw": ">=2026.3.31"
   },
   "scripts": {
     "test": "npx tsx test-channel.ts && npx tsx test-plugin.ts && npx tsx test-business.ts && npx tsx test-wechatpadpro.ts && npx tsx test-stability.ts",

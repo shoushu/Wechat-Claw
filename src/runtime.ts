@@ -1,14 +1,17 @@
-import type { PluginRuntime } from "openclaw/plugin-sdk";
+import type {OpenClawPluginApi, PluginRuntime} from "openclaw/plugin-sdk/core";
+import {createPluginRuntimeStore} from "openclaw/plugin-sdk/compat";
 
-let runtime: PluginRuntime | null = null;
+let runtime: OpenClawPluginApi["runtime"] | null = null;
+
+const store = createPluginRuntimeStore<PluginRuntime>("my-plugin runtime not initialized");
+
 
 export function setWeChatRuntime(next: PluginRuntime) {
-  runtime = next;
+    store.setRuntime(next);
 }
 
 export function getWeChatRuntime(): PluginRuntime {
-  if (!runtime) {
-    throw new Error("WeChat runtime not initialized");
-  }
-  return runtime;
+    // store.getRuntime(); // throws if not initialized
+    // store.tryGetRuntime(); // returns null if not initialized
+    return store.tryGetRuntime();
 }

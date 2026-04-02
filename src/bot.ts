@@ -1,4 +1,4 @@
-import type { ClawdbotConfig, RuntimeEnv } from "openclaw/plugin-sdk";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { getWeChatRuntime } from "./runtime.js";
 import { createWeChatReplyDispatcher } from "./reply-dispatcher.js";
 import {
@@ -14,10 +14,49 @@ import { ProxyClient } from "./proxy-client.js";
 import type { WechatMessageContext, ResolvedWeChatAccount } from "./types.js";
 import { sendWithOutboundControl } from "./outbound-control.js";
 
+// 运行时环境类型（兼容新旧 SDK）
+export type WechatRuntimeEnv = {
+  log?: (message: string, ...args: unknown[]) => void;
+  error?: (message: string, ...args: unknown[]) => void;
+  channel?: {
+    routing?: {
+      resolveAgentRoute: (params: {
+        cfg: OpenClawConfig;
+        channel: string;
+        accountId: string;
+        peer: string;
+      }) => { agentId: string; sessionKey: string; accountId?: string };
+    };
+    reply?: {
+      resolveEnvelopeFormatOptions: (cfg: OpenClawConfig) => unknown;
+      formatAgentEnvelope: (params: {
+        channel: string;
+        from: string;
+        timestamp: Date;
+        envelope: unknown;
+        body: string;
+      }) => unknown;
+      finalizeInboundContext: (params: Record<string, unknown>) => unknown;
+      dispatchReplyFromConfig: (params: {
+        ctx: unknown;
+        cfg: OpenClawConfig;
+        dispatcher: unknown;
+        replyOptions: unknown;
+      }) => Promise<{ queuedFinal: boolean; counts: { final: number } }>;
+    };
+    session?: {
+      resolveStorePath: (store: string | undefined, ctx: { agentId?: string }) => string;
+    };
+  };
+  system?: {
+    enqueueSystemEvent?: (label: string, params: { sessionKey: string; contextKey: string }) => void;
+  };
+};
+
 export async function handleWeChatMessage(params: {
-  cfg: ClawdbotConfig;
+  cfg: OpenClawConfig;
   message: WechatMessageContext;
-  runtime?: RuntimeEnv;
+  runtime?: WechatRuntimeEnv;
   accountId?: string;
   account: ResolvedWeChatAccount;
 }): Promise<void> {
@@ -182,7 +221,7 @@ export async function handleWeChatMessage(params: {
     const { dispatcher, replyOptions, markDispatchIdle } = createWeChatReplyDispatcher({
       cfg,
       agentId,
-      runtime: runtime as RuntimeEnv,
+      runtime: runtime as WechatRuntimeEnv,
       account,
       provider: account.provider,
       apiKey: account.apiKey,

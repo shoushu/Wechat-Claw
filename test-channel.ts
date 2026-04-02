@@ -7,10 +7,10 @@ import assert from "node:assert/strict";
 import { wechatPlugin } from "./src/channel.js";
 import { displayQRCode, renderTerminalQRCode } from "./src/utils/qrcode.js";
 import { buildWebhookBaseUrl } from "./src/webhook-url.js";
-import type { ClawdbotConfig } from "openclaw/plugin-sdk";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 
 // ===== 模拟运行时配置 =====
-const mockConfig: ClawdbotConfig = {
+const mockConfig: OpenClawConfig = {
   channels: {
     wechat: {
       accounts: {

@@ -1,5 +1,16 @@
-import type { ChannelPlugin, ClawdbotConfig } from "openclaw/plugin-sdk";
-import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk";
+import {
+  ChannelPlugin,
+  createChannelPluginBase,
+  createChatChannelPlugin,
+  OpenClawConfig
+} from "openclaw/plugin-sdk/core";
+import { buildChannelConfigSchema } from "openclaw/plugin-sdk/channel-config-schema";
+import type {
+  ChannelAccountSnapshot,
+  ChannelGatewayContext,
+  ChannelLogSink,
+} from "openclaw/plugin-sdk/channel-runtime";
+import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/core";
 import type { ResolvedWeChatAccount, WechatConfig, WechatAccountConfig } from "./types.js";
 import { WechatConfigSchema } from "./config-schema.js";
 import { ProxyClient } from "./proxy-client.js";
@@ -165,7 +176,7 @@ function resolveWeChatAccount({
   cfg,
   accountId,
 }: {
-  cfg: ClawdbotConfig;
+  cfg: OpenClawConfig;
   accountId: string;
 }): ResolvedWeChatAccount {
   const wechatCfg = cfg.channels?.wechat as WechatConfig | undefined;
@@ -250,7 +261,7 @@ function resolveWeChatAccount({
  * 列出所有可用的微信账号 ID
  * 支持简化配置和多账号配置
  */
-function listWeChatAccountIds(cfg: ClawdbotConfig): string[] {
+function listWeChatAccountIds(cfg: OpenClawConfig): string[] {
   const wechatCfg = cfg.channels?.wechat as WechatConfig | undefined;
 
   // 只要顶级 apiKey 存在，就视为单账号模式。
@@ -485,7 +496,9 @@ function collectSecurityWarnings(account: ResolvedWeChatAccount): string[] {
   return warnings;
 }
 
-export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
+export type WechatChannelPlugin = ChannelPlugin<ResolvedWeChatAccount & { configured: boolean }>;
+
+export const wechatPlugin: WechatChannelPlugin = {
   id: "wechat",
 
   meta: PLUGIN_META,
@@ -507,9 +520,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
     ],
   },
 
-  configSchema: {
-    schema: WechatConfigSchema,
-  },
+  configSchema: buildChannelConfigSchema(WechatConfigSchema),
 
   config: {
     listAccountIds: (cfg) => listWeChatAccountIds(cfg),
@@ -568,7 +579,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
 
       if (isDefault) {
         // 删除整个 wechat 配置。
-        const next = { ...cfg } as ClawdbotConfig;
+        const next = { ...cfg } as OpenClawConfig;
         const nextChannels = { ...cfg.channels };
         delete (nextChannels as Record<string, unknown>).wechat;
         if (Object.keys(nextChannels).length > 0) {
@@ -582,7 +593,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
       const accounts = { ...wechatCfg?.accounts };
       delete accounts[accountId];
 
-      const nextCfg = { ...cfg } as ClawdbotConfig;
+      const nextCfg = { ...cfg } as OpenClawConfig;
       nextCfg.channels = {
         ...cfg.channels,
         wechat: {
@@ -762,7 +773,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
   },
 
   gateway: {
-    startAccount: async (ctx) => {
+    startAccount: async (ctx: ChannelGatewayContext<ResolvedWeChatAccount>): Promise<GatewayStopResult> => {
       const { cfg, accountId, abortSignal, setStatus, log } = ctx;
       const account = await resolveWeChatAccount({ cfg, accountId });
       const profile = resolveStabilityProfile(account);
@@ -1006,7 +1017,7 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
       });
     },
 
-    stopAccount: async ({ accountId, setStatus }) => {
+    stopAccount: async ({ accountId, setStatus }): Promise<void> => {
       activeAccountLifecycles.get(accountId)?.requestStop();
       displayedLoginSessions.delete(accountId);
       setStatus({
@@ -1084,3 +1095,64 @@ export const wechatPlugin: ChannelPlugin<ResolvedWeChatAccount> = {
     },
   },
 };
+
+
+export const acmeChatPlugin = createChatChannelPlugin<ResolvedWeChatAccount>({
+  base: createChannelPluginBase({
+    id: "acme-chat",
+    setup: {
+      resolveAccount,
+      inspectAccount(cfg, accountId) {
+        const section =
+            (cfg.channels as Record<string, any>)?.["acme-chat"];
+        return {
+          enabled: Boolean(section?.token),
+          configured: Boolean(section?.token),
+          tokenStatus: section?.token ? "available" : "missing",
+        };
+      },
+    },
+  }),
+
+  // DM security: who can message the bot
+  security: {
+    dm: {
+      channelKey: "acme-chat",
+      resolvePolicy: (account) => account.dmPolicy,
+      resolveAllowFrom: (account) => account.allowFrom,
+      defaultPolicy: "allowlist",
+    },
+  },
+
+  // Pairing: approval flow for new DM contacts
+  pairing: {
+    text: {
+      idLabel: "Acme Chat username",
+      message: "Send this code to verify your identity:",
+      notify: async ({ target, code }) => {
+        await acmeChatApi.sendDm(target, `Pairing code: ${code}`);
+      },
+    },
+  },
+
+  // Threading: how replies are delivered
+  threading: { topLevelReplyToMode: "reply" },
+
+  // Outbound: send messages to the platform
+  outbound: {
+    attachedResults: {
+      sendText: async (params) => {
+        const result = await acmeChatApi.sendMessage(
+            params.to,
+            params.text,
+        );
+        return { messageId: result.id };
+      },
+    },
+    base: {
+      sendMedia: async (params) => {
+        await acmeChatApi.sendFile(params.to, params.filePath);
+      },
+    },
+  },
+});

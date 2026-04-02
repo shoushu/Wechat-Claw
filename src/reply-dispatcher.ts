@@ -1,9 +1,11 @@
-import type {
-  ClawdbotConfig,
-  RuntimeEnv,
-  ReplyPayload,
-} from "openclaw/plugin-sdk";
-import { createReplyPrefixContext } from "openclaw/plugin-sdk";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
+import { createReplyPrefixContext } from "openclaw/plugin-sdk/reply-runtime";
+import type { WechatRuntimeEnv } from "./bot.js";
+
+// ReplyPayload 类型定义
+export type ReplyPayload = {
+  text?: string | null;
+};
 import { getWeChatRuntime } from "./runtime.js";
 import { ProxyClient } from "./proxy-client.js";
 import type { WechatProvider } from "./types.js";
@@ -11,9 +13,9 @@ import { sendWithOutboundControl } from "./outbound-control.js";
 import type { ResolvedWeChatAccount } from "./types.js";
 
 export type CreateWeChatReplyDispatcherParams = {
-  cfg: ClawdbotConfig;
+  cfg: OpenClawConfig;
   agentId: string;
-  runtime: RuntimeEnv;
+  runtime: WechatRuntimeEnv;
   account: ResolvedWeChatAccount;
   provider?: WechatProvider;
   apiKey: string;
