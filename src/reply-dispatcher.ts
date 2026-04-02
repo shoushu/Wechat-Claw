@@ -1,5 +1,4 @@
 import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
-import { createReplyPrefixContext } from "openclaw/plugin-sdk/reply-runtime";
 import type { WechatRuntimeEnv } from "./bot.js";
 
 // ReplyPayload 类型定义
@@ -11,6 +10,7 @@ import { ProxyClient } from "./proxy-client.js";
 import type { WechatProvider } from "./types.js";
 import { sendWithOutboundControl } from "./outbound-control.js";
 import type { ResolvedWeChatAccount } from "./types.js";
+import {createReplyPrefixContext} from "openclaw/plugin-sdk/feishu";
 
 export type CreateWeChatReplyDispatcherParams = {
   cfg: OpenClawConfig;
